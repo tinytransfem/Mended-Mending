@@ -1,19 +1,14 @@
-package vazkii.unmending;
+package gay.ttf.mended;
 
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.item.ExperienceOrbEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.enchantment.Enchantments;
-import net.minecraft.item.Items;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraftforge.event.AnvilUpdateEvent;
-import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerXpEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -23,19 +18,18 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public class KillingMendingAndOtherTales {
 
-	// stolen from King Lemming thanks mate
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public static void killMending(PlayerXpEvent.PickupXp event) {
-		PlayerEntity player = event.getPlayer();
-		ExperienceOrbEntity orb = event.getOrb();
+		Player player = event.getEntity();
+		ExperienceOrb orb = event.getOrb();
 
-		player.xpCooldown = 2;
-		player.onItemPickup(orb, 1);
-		if (orb.xpValue > 0) {
-			player.giveExperiencePoints(orb.xpValue);
+		player.takeXpDelay = 2;
+		player.take(orb, 1);
+		if (orb.value > 0) {
+			player.giveExperiencePoints(orb.value);
 		}
 
-		orb.remove();
+		orb.discard();
 		event.setCanceled(true);
 	}
 
@@ -70,7 +64,7 @@ public class KillingMendingAndOtherTales {
 			}
 
 			if (!out.hasTag()) {
-				out.setTag(new CompoundNBT());
+				out.setTag(new CompoundTag());
 			}
 
 			Map<Enchantment, Integer> enchOutput = EnchantmentHelper.getEnchantments(out);
@@ -79,25 +73,14 @@ public class KillingMendingAndOtherTales {
 			EnchantmentHelper.setEnchantments(enchOutput, out);
 
 			out.setRepairCost(0);
-			if(out.isDamageable()) {
-				out.setDamage(0);
+			if(out.isDamageableItem()) {
+				out.setDamageValue(0);
 			}
 
 			event.setOutput(out);
 			if (event.getCost() == 0) {
 				event.setCost(1);
 			}
-		}
-	}
-
-	@SubscribeEvent
-	@OnlyIn(Dist.CLIENT)
-	public static void onTooltip(ItemTooltipEvent event) {
-		TranslationTextComponent itemgotmodified = new TranslationTextComponent("unmending.repaired");
-		itemgotmodified.getStyle().setColor(TextFormatting.YELLOW);
-		int repairCost = event.getItemStack().getRepairCost();
-		if (repairCost > 0) {
-			event.getToolTip().add(itemgotmodified);
 		}
 	}
 }
