@@ -1,21 +1,21 @@
 package gay.ttf.mended;
 
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraftforge.event.AnvilUpdateEvent;
-import net.minecraftforge.event.entity.player.PlayerXpEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-
-import java.util.Map;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.AnvilUpdateEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerXpEvent;
 
 @SuppressWarnings("unused")
+@EventBusSubscriber(modid = MendedMending.MOD_ID)
 public class KillingMendingAndOtherTales {
 
 	@SubscribeEvent(priority = EventPriority.LOWEST)
@@ -25,8 +25,8 @@ public class KillingMendingAndOtherTales {
 
 		player.takeXpDelay = 2;
 		player.take(orb, 1);
-		if (orb.value > 0) {
-			player.giveExperiencePoints(orb.value);
+		if (orb.getValue() > 0) {
+			player.giveExperiencePoints(orb.getValue());
 		}
 
 		orb.discard();
@@ -45,10 +45,12 @@ public class KillingMendingAndOtherTales {
 
 		boolean isMended = false;
 
-		Map<Enchantment, Integer> enchLeft = EnchantmentHelper.getEnchantments(left);
-		Map<Enchantment, Integer> enchRight = EnchantmentHelper.getEnchantments(right);
 
-		if (enchLeft.containsKey(Enchantments.MENDING) || enchRight.containsKey(Enchantments.MENDING)) {
+		ItemEnchantments enchLeft = EnchantmentHelper.getEnchantmentsForCrafting(left);
+		ItemEnchantments enchRight = EnchantmentHelper.getEnchantmentsForCrafting(right);
+
+		if (enchLeft.entrySet().stream().anyMatch(x -> x.getKey().getKey() == Enchantments.MENDING) ||
+				enchRight.entrySet().stream().anyMatch(x -> x.getKey().getKey() == Enchantments.MENDING)) {
 			if (left.getItem() == right.getItem()) {
 				isMended = true;
 			}
@@ -63,24 +65,18 @@ public class KillingMendingAndOtherTales {
 				out = left.copy();
 			}
 
-			if (!out.hasTag()) {
-				out.setTag(new CompoundTag());
-			}
+			ItemEnchantments.Mutable enchOutput = new ItemEnchantments.Mutable(EnchantmentHelper.getEnchantmentsForCrafting(out));
+			enchRight.entrySet().forEach(ench -> enchOutput.set(ench.getKey(), ench.getIntValue()));
+			enchOutput.removeIf(ench -> ench.getKey() == Enchantments.MENDING);
+			EnchantmentHelper.setEnchantments(out, enchOutput.toImmutable());
 
-			Map<Enchantment, Integer> enchOutput = EnchantmentHelper.getEnchantments(out);
-			enchOutput.putAll(enchRight);
-			enchOutput.remove(Enchantments.MENDING);
-			EnchantmentHelper.setEnchantments(enchOutput, out);
-
-			out.setRepairCost(0);
+			out.set(DataComponents.REPAIR_COST, 0);
 			if(out.isDamageableItem()) {
 				out.setDamageValue(0);
 			}
 
 			event.setOutput(out);
-			if (event.getCost() == 0) {
-				event.setCost(1);
-			}
+			event.setCost(1);
 		}
 	}
 }
