@@ -25,8 +25,8 @@ public class KillingMendingAndOtherTales {
 
 		player.takeXpDelay = 2;
 		player.take(orb, 1);
-		if (orb.value > 0) {
-			player.giveExperiencePoints(orb.value);
+		if (orb.getValue() > 0) {
+			player.giveExperiencePoints(orb.getValue());
 		}
 
 		orb.discard();
@@ -76,9 +76,7 @@ public class KillingMendingAndOtherTales {
 			}
 
 			event.setOutput(out);
-			if (event.getCost() == 0) {
-				event.setCost(1);
-			}
+			event.setCost(1);
 		}
 	}
 }
