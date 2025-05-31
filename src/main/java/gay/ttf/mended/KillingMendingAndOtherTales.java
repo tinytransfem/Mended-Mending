@@ -76,7 +76,7 @@ public class KillingMendingAndOtherTales {
 			}
 
 			event.setOutput(out);
-			event.setCost(1);
+			event.setXpCost(1);
 		}
 	}
 }
